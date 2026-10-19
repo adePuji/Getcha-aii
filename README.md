@@ -39,7 +39,7 @@ Gotcha-AI-Python/
    - ⚡ **Pilihan Refine Cepat**: Opsi *"Gampang"*, *"Singkat"*, *"Analogi"*, dan *"Detail"*.
 3. **Multimodal Input (Teks, Audio, Dokumen)**:
    - 🎙️ **Voice Note (VN)**: Rekam suara langsung via mic browser dengan visualizer gelombang suara dan transkripsi cerdas.
-   - 📎 **Upload Dokumen hingga 50MB**: Dukungan parsing file PDF (`.pdf`), Word (`.docx`), PowerPoint (`.pptx`), gambar (`.jpg`, `.png`), dan audio (`.mp3`, `.wav`).
+   - 📎 **Upload Dokumen hingga 15MB**: Dukungan parsing file PDF (`.pdf`), Word (`.docx`), PowerPoint (`.pptx`), gambar (`.jpg`, `.png`), dan audio (`.mp3`, `.wav`).
 4. **Desain & Pengalaman Pengguna (UI/UX)**:
    - 🌗 **Toggle Tema Gelap & Terang**: Dilengkapi animasi pop-up ikon dan efek suara (*chime synthesis* via Web Audio API).
    - 📜 **Riwayat Belajar (History)**: Tersimpan rapi di browser (*localStorage*) dengan fitur pencarian dan *New Chat*.

@@ -16,8 +16,8 @@ app = Flask(
     template_folder="templates"
 )
 
-# Konfigurasi batas upload request body (mendukung dokumen/audio hingga 50MB)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
+# Konfigurasi batas upload request body (mendukung dokumen/audio hingga 15MB)
+app.config['MAX_CONTENT_LENGTH'] = 35 * 1024 * 1024  # 35 MB (cukup untuk file 15MB base64)
 
 # Middleware untuk logging setiap request masuk
 @app.before_request

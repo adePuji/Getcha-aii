@@ -319,21 +319,21 @@
                                 Tempel Materi &amp; Media:
                             </label>
                             <div class="flex items-center gap-1.5 xs:gap-2 flex-shrink-0">
-                                <!-- Tombol Unggah File (Hingga 50MB) -->
-                                <label class="cursor-pointer bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/20 active:scale-95 text-slate-300 hover:text-amber-300 text-[9px] xs:text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg transition-warm flex items-center gap-1" title="Unggah file hingga 50MB: PDF, Word (.docx), PPT (.pptx), Catatan (.txt), Audio (.mp3, .wav, .m4a), atau Gambar (.jpg, .png)">
-                                    <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i>
-                                    <span>Unggah (50MB)</span>
+                                <!-- Tombol Unggah File: Ikon + berdampingan dengan Ikon Folder (Maks 15MB) -->
+                                <label class="cursor-pointer bg-white/5 hover:bg-amber-500/20 border border-white/5 hover:border-amber-500/30 active:scale-90 text-amber-400 h-8 px-2.5 sm:h-8.5 sm:px-3 rounded-xl transition-warm flex items-center justify-center gap-1.5 shadow-sm group" title="Unggah File (Maksimal 15MB): Dokumen PDF/Word/PPT, Gambar, Audio">
+                                    <i class="fa-solid fa-plus text-xs text-amber-300 group-hover:rotate-90 transition-transform"></i>
+                                    <i class="fa-solid fa-folder-open text-sm sm:text-base text-amber-400 group-hover:scale-110 transition-transform"></i>
                                     <input type="file" id="file-uploader" accept=".txt,.md,.png,.jpg,.jpeg,.gif,.webp,.pdf,.docx,.doc,.pptx,.ppt,.mp3,.wav,.ogg,.m4a,.webm,.aac,.TXT,.MD,.PNG,.JPG,.JPEG,.GIF,.WEBP,.PDF,.DOCX,.DOC,.PPTX,.PPT,.MP3,.WAV,.OGG,.M4A,.WEBM,.AAC" class="hidden">
                                 </label>
 
-                                <!-- Tombol Rekam Voice Note (VN) -->
-                                <button type="button" id="btn-vn-record" onclick="window.toggleVoiceNoteRecording()" class="bg-white/5 hover:bg-rose-500/15 border border-white/5 hover:border-rose-500/25 active:scale-95 text-slate-300 hover:text-rose-400 text-[9px] xs:text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg transition-warm flex items-center gap-1.5 cursor-pointer" title="Rekam Voice Note (VN) langsung lewat mikrofon">
-                                    <span class="relative flex h-2 w-2">
-                                        <span id="vn-ping" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                        <span id="vn-dot" class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                <!-- Tombol Rekam Voice Note (VN): Ikon Mic Saja -->
+                                <button type="button" id="btn-vn-record" onclick="window.toggleVoiceNoteRecording()" class="bg-white/5 hover:bg-rose-500/20 border border-white/5 hover:border-rose-500/30 active:scale-90 text-rose-400 h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-xl transition-warm flex items-center justify-center cursor-pointer relative shadow-sm group" title="Rekam Voice Note (Pesan Suara)">
+                                    <span class="relative flex items-center justify-center">
+                                        <span id="vn-ping" class="hidden animate-ping absolute -top-1 -right-1 h-2 w-2 rounded-full bg-rose-400 opacity-75"></span>
+                                        <span id="vn-dot" class="hidden absolute -top-1 -right-1 h-2 w-2 rounded-full bg-rose-500"></span>
+                                        <i class="fa-solid fa-microphone text-rose-400 text-xs sm:text-sm group-hover:scale-110 transition-transform"></i>
                                     </span>
-                                    <i class="fa-solid fa-microphone text-rose-400 text-[10px] sm:text-xs"></i>
-                                    <span id="vn-btn-text">Rekam VN</span>
+                                    <span id="vn-btn-text" class="sr-only">Rekam VN</span>
                                 </button>
 
                                 <span id="char-counter" class="text-[8.5px] xs:text-[9.5px] sm:text-xs text-slate-600 font-semibold whitespace-nowrap">0 Karakter</span>
@@ -429,7 +429,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <span id="file-preview-name" class="font-bold block truncate text-[11px] sm:text-xs">NamaFile.jpg</span>
-                                    <span id="file-preview-size" class="text-[8px] xs:text-[9px] sm:text-[10px] text-slate-500 block leading-tight">12.4 KB (Maks 50MB)</span>
+                                    <span id="file-preview-size" class="text-[8px] xs:text-[9px] sm:text-[10px] text-slate-500 block leading-tight">12.4 KB (Maks 15MB)</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1">

@@ -738,10 +738,10 @@ function setupEventListeners() {
     function processUploadedFile(file) {
         if (!file) return;
 
-        // Friendly size limit check (Hingga 50 MB)
-        const max_size = 50 * 1024 * 1024; 
+        // Friendly size limit check (Hingga 15 MB)
+        const max_size = 15 * 1024 * 1024; 
         if (file.size > max_size) {
-            showToast("Ukuran file terlalu besar! Maksimal 50MB ya.", "error");
+            showToast("Ukuran file terlalu besar! Maksimal 15MB ya.", "error");
             return;
         }
 
@@ -878,7 +878,7 @@ function setupEventListeners() {
                     textInput.dispatchEvent(new Event('input'));
                 }
 
-                showToast(`File audio ${fileName} (hingga 50MB) berhasil dimuat!`, "success");
+                showToast(`File audio ${fileName} (hingga 15MB) berhasil dimuat!`, "success");
             };
             reader.readAsDataURL(file);
         }
@@ -962,7 +962,7 @@ function setupEventListeners() {
             };
             reader.readAsDataURL(file);
         } else {
-            showToast("Format tidak didukung. Silakan gunakan Dokumen (PDF, Word, PPT), Teks (.txt), Gambar (.jpg, .png), atau Audio (.mp3, .wav) hingga 50MB.", "error");
+            showToast("Format tidak didukung. Silakan gunakan Dokumen (PDF, Word, PPT), Teks (.txt), Gambar (.jpg, .png), atau Audio (.mp3, .wav) hingga 15MB.", "error");
         }
     }
 
