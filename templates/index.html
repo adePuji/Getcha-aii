@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gotcha.ai // Multi-Level AI Mind Explainer (Python Flask Edition)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <script>
+        // Init theme immediately to prevent layout or color flashes
+        try {
+            const savedTheme = localStorage.getItem('gotcha_theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('theme-light');
+            }
+        } catch(e) {}
+    </script>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 sm:p-6 md:p-8 relative overflow-x-hidden pt-20 sm:pt-28 md:pt-32 pb-16">
+    <script>
+        // Ensure body immediately inherits theme-light before paint if stored
+        try {
+            if (localStorage.getItem('gotcha_theme') === 'light') {
+                document.body.classList.add('theme-light');
+            }
+        } catch(e) {}
+    </script>
+
+    <!-- Beautiful Welcome Screen Overlay (Gotcha Onboarding) -->
+    <div id="welcomeOverlay" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-slate-950/98 backdrop-blur-2xl transition-all duration-[900ms] ease-in-out overflow-y-auto">
+        <!-- Quick Theme Toggle on Welcome Screen -->
+        <div class="absolute top-3.5 right-3.5 sm:top-6 sm:right-6 z-30">
+            <button type="button" onclick="window.toggleTheme()" class="welcome-theme-toggle-btn bg-white/10 hover:bg-white/20 active:scale-90 text-amber-400 h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-white/10 shadow transition-warm cursor-pointer flex items-center justify-center" title="Ganti Tema (Gelap / Terang)" aria-label="Ganti Tema">
+                <span class="welcome-theme-icon-container flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-moon"></i>
+                </span>
+            </button>
+        </div>
+
+        <!-- Floating Ambient Background Elements (Highly interactive & aligned with user requested items: ruler, black holes, books, physics, astronomy) -->
+        
+        <!-- Astronomy & Constellation stars -->
+        <div class="absolute top-[8%] left-[8%] text-3xl sm:text-5xl opacity-45 pointer-events-none animate-float-1 select-none filter drop-shadow-[0_0_15px_rgba(129,140,248,0.4)]" title="Saturnus / Astronomi">🪐</div>
+        <div class="absolute top-[28%] left-[4%] text-2xl sm:text-4xl opacity-35 pointer-events-none animate-float-3 select-none filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] hidden sm:block">🌠</div>
+        <div class="absolute top-[5%] right-[22%] text-lg sm:text-3xl opacity-20 pointer-events-none animate-float-2 select-none">✨</div>
+        <div class="absolute top-[32%] right-[5%] text-3xl sm:text-5xl opacity-35 pointer-events-none animate-float-2 select-none filter drop-shadow-[0_0_15px_rgba(167,139,250,0.3)]" title="Teleskop / Astronomi">🔭</div>
+        <div class="absolute bottom-[28%] right-[4%] text-2xl sm:text-4xl opacity-30 pointer-events-none animate-float-3 select-none hidden sm:block">⭐</div>
+
+        <!-- Penggaris (ruler) -->
+        <div class="absolute top-[16%] left-[24%] text-3xl sm:text-5xl opacity-30 pointer-events-none animate-float-1 select-none hidden md:block" title="Penggaris Segitiga">📐</div>
+        <div class="absolute bottom-[35%] left-[5%] text-2xl sm:text-4xl opacity-25 pointer-events-none animate-float-2 select-none hidden sm:block" title="Penggaris Lurus">📏</div>
+
+        <!-- Lubang hitam / Cosmos portals -->
+        <div class="absolute top-[12%] right-[10%] text-4xl sm:text-7xl opacity-40 pointer-events-none animate-spin-glow select-none filter drop-shadow-[0_0_20px_rgba(139,92,246,0.5)]" title="Lubang Hitam / Black Hole">🌀</div>
+        <div class="absolute bottom-[8%] right-[24%] text-3xl sm:text-5xl opacity-30 pointer-events-none animate-float-1 select-none hidden sm:block" title="Portal Kosmis">🕳️</div>
+        <div class="absolute bottom-[20%] left-[12%] text-4xl sm:text-6xl opacity-35 pointer-events-none animate-float-2 select-none" title="Galaksi Rasi Bintang">🌌</div>
+
+        <!-- Buku (books) -->
+        <div class="absolute bottom-[16%] right-[10%] text-4xl sm:text-6xl opacity-45 pointer-events-none animate-float-1 select-none filter drop-shadow-[0_0_15px_rgba(245,158,11,0.35)]" title="Buku Pelajaran">📚</div>
+        <div class="absolute top-[28%] right-[25%] text-2xl sm:text-4xl opacity-25 pointer-events-none animate-float-3 select-none hidden md:block">📖</div>
+
+        <!-- Alat fisika & Science -->
+        <div class="absolute bottom-[24%] left-[24%] text-3xl sm:text-5xl opacity-40 pointer-events-none animate-float-2 select-none filter drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]" title="Atom Fisika">⚛️</div>
+        <div class="absolute top-[6%] left-[45%] text-2xl sm:text-4xl opacity-25 pointer-events-none animate-float-3 select-none hidden sm:block">🧲</div>
+        <div class="absolute bottom-[5%] left-[40%] text-3xl sm:text-5xl opacity-30 pointer-events-none animate-float-1 select-none" title="Eksperimen Lab">🧪</div>
+
+        <!-- Interactive slide-in welcome card with optimized screen responsiveness (compact look on desktop/laptop, snug fit on tablet & iPhone/Android) -->
+        <div id="welcomeCard" class="welcome-card bg-[#0b1122]/95 border border-white/10 rounded-[2.25rem] p-6 xs:p-7 sm:p-9 md:p-10 max-w-[430px] w-full text-center relative overflow-hidden shadow-[0_50px_100px_-15px_rgba(0,0,0,0.95)] opacity-0 translate-x-[150px] transition-all duration-[800ms] ease-out my-auto mx-auto select-none">
+            <!-- Ambient lights inside card -->
+            <div class="absolute -top-20 -left-20 w-44 h-44 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-20 -right-20 w-44 h-44 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="space-y-5 sm:space-y-6 relative z-10">
+                <!-- Custom Animated Icon Logo Wrapper -->
+                <div class="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto flex items-center justify-center reveal-delayed delay-75">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-500 rounded-full blur-xl opacity-35 animate-spin-glow"></div>
+                    <div class="absolute inset-0 border border-white/10 rounded-full animate-pulse opacity-40"></div>
+                    <div class="welcome-logo-circle absolute inset-1.5 bg-[#0b1122] border border-white/10 rounded-full flex items-center justify-center shadow-inner z-10 transition-warm">
+                        <span class="text-3xl sm:text-4xl animate-sway select-none">🍀</span>
+                    </div>
+                </div>
+
+                <div class="welcome-badge inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-500/10 to-amber-500/10 border border-amber-500/20 px-3 py-1 sm:py-1.5 rounded-full text-[8px] sm:text-[10px] tracking-widest text-amber-400 font-extrabold uppercase mx-auto animate-pulse reveal-delayed delay-150 transition-warm">
+                    ✨ INDIGEN-AI BELAJAR GOTCHA
+                </div>
+                
+                <!-- Moving and beautifully emerging title header with progressive slide reveal -->
+                <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight animate-text-reveal reveal-delayed delay-300">
+                    Hai selamat datang <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-amber-400 bg-clip-text text-transparent inline-block transition-transform duration-500 hover:scale-[1.05] drop-shadow-[0_0_15px_rgba(167,139,250,0.15)]">Gotcha.ai..</span>
+                </h2>
+                
+                <!-- Educational Transmuter metaphor banner -->
+                <div class="welcome-transmuter-box bg-white/[0.02] border border-white/5 rounded-2xl py-2 px-3.5 font-mono text-[8px] sm:text-[10px] text-slate-300 flex items-center justify-center gap-1.5 max-w-sm mx-auto shadow-inner reveal-delayed delay-450 transition-warm">
+                    <span>Materi Rumit 📚</span> 
+                    <i class="fa-solid fa-arrow-right-long text-amber-400/80 animate-pulse"></i> 
+                    <span class="text-amber-400 font-bold">Rangkuman Asyik ⚡</span>
+                </div>
+
+                <p class="welcome-desc text-[11px] sm:text-xs text-slate-400 leading-relaxed max-w-xs sm:max-w-sm mx-auto reveal-delayed delay-600 transition-warm">
+                    Ketik materi buku pelajaran apa saja, rumus pelik, atau teori membosankan apa pun, lalu saksikan ia didekonstruksi menjadi penjelasan asyik sekejap mata!
+                </p>
+                
+                <div class="pt-2 sm:pt-3 flex flex-col items-center justify-center gap-2.5 reveal-delayed delay-750">
+                    <button type="button" id="btn-start-app" onclick="window.dismissWelcome()" class="w-full sm:w-auto min-w-[200px] bg-gradient-to-r from-indigo-600 via-purple-600 to-amber-600 hover:from-indigo-500 hover:to-amber-500 text-white font-extrabold py-3 sm:py-3.5 px-6 rounded-2xl text-[10px] sm:text-xs tracking-widest uppercase transition-all duration-300 transform hover:-translate-y-1 active:scale-95 cursor-pointer shadow-xl shadow-indigo-950/50 flex items-center justify-center gap-2 group">
+                        <span>Mulai Belajar</span>
+                        <i class="fa-solid fa-arrow-right-long transition-transform group-hover:translate-x-1.5 text-amber-300"></i>
+                    </button>
+                    
+                    <span class="welcome-no-login text-[8px] sm:text-[10px] font-semibold text-slate-400 flex items-center gap-1 tracking-wide reveal-delayed delay-900 transition-warm">
+                        <i class="fa-solid fa-circle-check text-emerald-400 animate-pulse"></i> — Tanpa perlu log-in/Daftar
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Header Navigation Bar (Premium Glassmorphic Header) -->
+    <header class="fixed top-0 inset-x-0 z-40 bg-slate-950/70 backdrop-blur-md border-b border-white/5 px-4 py-2.5">
+        <div class="max-w-7xl lg:max-w-[1400px] w-full mx-auto flex items-center justify-between gap-2 px-1 xs:px-2 sm:px-4">
+            <!-- Left Side: Hamburger menu & Mini branding -->
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleSidebar()" class="bg-white/5 hover:bg-white/10 text-amber-400 h-9 w-9 rounded-lg border border-white/5 shadow-md flex items-center justify-center transition-warm cursor-pointer active:scale-95" aria-label="Menu Riwayat">
+                    <i class="fa-solid fa-bars text-sm"></i>
+                </button>
+                <div class="flex items-center gap-1 select-none">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-slate-300">Gotcha</span>
+                    <span class="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-400 font-extrabold px-1.5 py-0.5 rounded leading-none">AI</span>
+                </div>
+            </div>
+
+            <!-- Right Side Navigation Actions (Compact) -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <div id="nav-arrow-group" class="flex items-center bg-white/[0.03] border border-white/5 rounded-lg p-0.5">
+                    <button type="button" onclick="window.navBack()" class="hover:bg-white/5 active:scale-95 text-slate-400 hover:text-white h-7 px-2.5 rounded cursor-pointer transition-warm flex items-center justify-center gap-1 text-[10px] font-bold" title="Kembali ke sebelum">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div class="w-[1px] h-3 bg-white/5"></div>
+                    <button type="button" onclick="window.navForward()" class="hover:bg-white/5 active:scale-95 text-slate-400 hover:text-white h-7 px-2.5 rounded cursor-pointer transition-warm flex items-center justify-center gap-1 text-[10px] font-bold" title="Menu berikutnya">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Theme Switch Button with Moon/Sun popup animation -->
+                <button type="button" id="theme-toggle-btn" onclick="window.toggleTheme()" class="bg-white/5 hover:bg-white/10 active:scale-90 text-amber-400 h-8 w-8 sm:w-9 rounded-lg border border-white/10 shadow transition-warm cursor-pointer flex items-center justify-center relative overflow-hidden group" title="Ganti Tema (Gelap / Terang)" aria-label="Ganti Tema">
+                    <span id="theme-icon-container" class="flex items-center justify-center text-sm transition-transform">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                    </span>
+                </button>
+
+                <!-- New Chat Button (Replaced 'LAGI' / 'Ulangi' with 'New Chat') -->
+                <button type="button" onclick="window.mulaiChatBaru()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 hover:text-white h-8 px-2.5 sm:px-3 rounded-lg border border-white/10 shadow transition-warm active:scale-95 cursor-pointer flex items-center gap-1.5 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider" title="Mulai Sesi Chat Baru">
+                    <i class="fa-solid fa-plus text-[11px] text-amber-400"></i> <span>New Chat</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="sidebarHistory" class="fixed top-0 left-0 h-full w-64 premium-glass border-r border-white/10 z-50 transform -translate-x-full transition-warm p-5 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b border-white/5 pb-3">
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-history"></i> Riwayat Cari
+            </h2>
+            <button type="button" onclick="toggleSidebar()" class="text-slate-400 hover:text-rose-400 transition-warm cursor-pointer p-1">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        
+        <!-- Tombol Chat Baru (New Chat) -->
+        <button type="button" onclick="mulaiChatBaru()" class="w-full bg-gradient-to-r from-indigo-600 to-amber-600 hover:from-indigo-500 hover:to-amber-500 text-white font-extrabold py-3 px-4 rounded-xl text-xs tracking-wider uppercase transition-warm cursor-pointer flex items-center justify-center gap-2 shadow-lg">
+            <i class="fa-solid fa-plus-circle text-[13px]"></i> <span>New Chat</span>
+        </button>
+
+        <div id="historyList" class="flex flex-col gap-2 overflow-y-auto flex-1 pr-1">
+        </div>
+    </div>
+
+    <div id="custom-toast" class="fixed top-[76px] right-5 z-50 transform translate-y-[-150px] opacity-0 transition-all duration-500 flex items-center gap-3 bg-slate-900 border border-amber-500/30 text-slate-100 px-5 py-4 rounded-2xl shadow-2xl max-w-sm pointer-events-none">
+        <div id="toast-icon" class="text-amber-400"><i class="fa-solid fa-circle-info text-lg"></i></div>
+        <div id="toast-message" class="text-xs font-semibold">Notifikasi sistem</div>
+    </div>
+
+    <div class="w-full max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto space-y-8 py-3">
+
+        <div class="text-center space-y-3">
+            <div id="intel-badge" class="intel-badge inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500/10 to-amber-500/10 border border-amber-500/20 px-4 py-2 rounded-full text-[10px] sm:text-xs tracking-widest text-amber-400 font-extrabold uppercase mx-auto select-none transition-warm shadow-sm">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+                <span class="badge-text tracking-widest font-extrabold">Inteligensia Edukasi Gotcha</span>
+            </div>
+            <h1 class="text-4xl xs:text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-none">
+                Gotcha<span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-amber-400 bg-clip-text text-transparent">.ai</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+                Ubah materi buku paket, jurnal ilmiah, atau teori ruwet jadi rangkuman asyik yang langsung masuk ke otak kamu!
+            </p>
+        </div>
+
+        <form id="main-form" class="space-y-3.5 sm:space-y-6">
+            <!-- Pilihan Jenjang Pendidikan (Diluar kotak utama, terpisah, ala ChatGPT presets/pills) -->
+            <div id="education-level-section" class="space-y-2.5 transition-warm">
+                <label class="text-[9px] xs:text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest px-1 block text-center">
+                    Sesuaikan dengan Jenjang Pendidikan Kalian:
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                    
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="education-level" value="sd" checked class="hidden">
+                        <div class="level-card h-full bg-white/[0.02] border border-white/5 p-2 sm:p-4.5 rounded-2xl flex flex-col items-center justify-center text-center transition-warm">
+                            <span class="level-icon text-lg sm:text-2xl mb-0.5 sm:mb-1.5 transition-warm">🧒</span>
+                            <span class="level-title text-[9px] xs:text-[10px] sm:text-xs font-bold text-slate-400 transition-warm block">Anak SD</span>
+                            <span class="text-[7px] xs:text-[8.5px] sm:text-xs text-slate-500 mt-0.5">Sederhana & Cerita</span>
+                        </div>
+                    </label>
+
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="education-level" value="smp" class="hidden">
+                        <div class="level-card h-full bg-white/[0.02] border border-white/5 p-2 sm:p-4.5 rounded-2xl flex flex-col items-center justify-center text-center transition-warm">
+                            <span class="level-icon text-lg sm:text-2xl mb-0.5 sm:mb-1.5 transition-warm">🧑‍🎓</span>
+                            <span class="level-title text-[9px] xs:text-[10px] sm:text-xs font-bold text-slate-400 transition-warm block">Anak SMP</span>
+                            <span class="text-[7px] xs:text-[8.5px] sm:text-xs text-slate-500 mt-0.5">Poin Esensial</span>
+                        </div>
+                    </label>
+
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="education-level" value="sma-smk" class="hidden">
+                        <div class="level-card h-full bg-white/[0.02] border border-white/5 p-2 sm:p-4.5 rounded-2xl flex flex-col items-center justify-center text-center transition-warm">
+                            <span class="level-icon text-lg sm:text-2xl mb-0.5 sm:mb-1.5 transition-warm">🛠️</span>
+                            <span class="level-title text-[9px] xs:text-[10px] sm:text-xs font-bold text-slate-400 transition-warm block">SMA / SMK</span>
+                            <span class="text-[7px] xs:text-[8.5px] sm:text-xs text-slate-500 mt-0.5">Taktik Cheat Sheet</span>
+                        </div>
+                    </label>
+
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="education-level" value="mahasiswa" class="hidden">
+                        <div class="level-card h-full bg-white/[0.02] border border-white/5 p-2 sm:p-4.5 rounded-2xl flex flex-col items-center justify-center text-center transition-warm">
+                            <span class="level-icon text-lg sm:text-2xl mb-0.5 sm:mb-1.5 transition-warm">🎓</span>
+                            <span class="level-title text-[9px] xs:text-[10px] sm:text-xs font-bold text-slate-400 transition-warm block">Mahasiswa</span>
+                            <span class="text-[7px] xs:text-[8.5px] sm:text-xs text-slate-500 mt-0.5">Analisis Kritis</span>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- Kotak Utama Input/Output (Premium Glass) -->
+            <div class="premium-glass rounded-xl sm:rounded-[2rem] p-2.5 xs:p-4 sm:p-7 md:p-9 warm-border-glow">
+
+                <div id="result-section" class="hidden premium-glass bg-white/[0.01] rounded-2xl p-3.5 sm:p-6 border-l-4 border-l-amber-500 space-y-4 mb-4 sm:mb-6 transition-warm animate-fade-in">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between border-b border-white/10 pb-3 sm:pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-400">
+                                <i class="fa-solid fa-lightbulb"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-white uppercase tracking-widest">Hasil Terjemahan Otak AI</h3>
+                                <p class="text-[10px] text-slate-500" id="result-meta-level">Level Penjelasan: Anak SD</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <!-- Tombol Kembali / Ubah Teks -->
+                            <button type="button" onclick="kembaliKeInput()" class="text-slate-400 hover:text-indigo-405 p-2 rounded-lg bg-white/5 border border-white/5 hover:border-indigo-500/20 cursor-pointer transition-warm text-xs flex items-center gap-1.5" title="Kembali ke Input (Edit Teks)">
+                                <i class="fa-solid fa-pen-to-square"></i> <span>Ubah Teks</span>
+                            </button>
+                            
+                            <button type="button" id="btn-copy" class="text-slate-400 hover:text-amber-400 p-2 rounded-lg bg-white/5 border border-white/5 hover:border-amber-500/20 cursor-pointer transition-warm text-xs flex items-center gap-1.5" title="Salin Jawaban">
+                                <i class="fa-regular fa-copy"></i> <span>Salin</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="loading-skeleton" class="hidden space-y-3 py-2 animate-pulse">
+                        <div class="h-3 bg-white/10 rounded-full w-2/3"></div>
+                        <div class="h-3 bg-white/10 rounded-full w-full"></div>
+                        <div class="h-3 bg-white/10 rounded-full w-5/6"></div>
+                    </div>
+
+                    <div id="display-result" class="text-sm sm:text-base text-slate-200 leading-relaxed font-normal prose prose-invert max-w-none format-markdown"></div>
+
+                    <div id="roadmapOptionBox" class="hidden bg-slate-950/50 p-4 rounded-xl border border-indigo-500/30 flex flex-col gap-2 mt-4 animate-fade-in">
+                        <p class="text-xs font-semibold text-indigo-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-route text-amber-400"></i> Apakah kamu mau dibuatkan roadmap detail belajarnya sekarang?
+                        </p>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="mintaRoadmapDetail()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-[11px] font-bold transition-warm cursor-pointer">Iya, Buat Roadmap</button>
+                            <button type="button" onclick="document.getElementById('roadmapOptionBox').classList.add('hidden')" class="bg-white/5 hover:bg-white/10 text-slate-300 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-warm cursor-pointer">Tidak, Jelaskan Dulu</button>
+                        </div>
+                    </div>
+
+                    <div id="quickRefineContainer" class="hidden bg-slate-950/40 p-4 rounded-xl border border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3 mt-4">
+                        <div class="flex flex-wrap gap-1.5 items-center">
+                            <span class="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider mr-1">Jelaskan Lagi Tapi:</span>
+                            <button type="button" onclick="refineMateri('gampang')" class="bg-white/5 hover:bg-indigo-500/20 text-slate-300 hover:text-indigo-300 text-xs px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-indigo-500/20 transition-warm cursor-pointer">👶 Gampang</button>
+                            <button type="button" onclick="refineMateri('singkat')" class="bg-white/5 hover:bg-purple-500/20 text-slate-300 hover:text-purple-300 text-xs px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-purple-500/20 transition-warm cursor-pointer">⚡ Singkat</button>
+                            <button type="button" onclick="refineMateri('analogi')" class="bg-white/5 hover:bg-amber-500/20 text-slate-300 hover:text-amber-300 text-xs px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-amber-500/20 transition-warm cursor-pointer">🎨 Analogi</button>
+                            <button type="button" onclick="refineMateri('detail')" class="bg-white/5 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-300 text-xs px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-emerald-500/20 transition-warm cursor-pointer">🎓 Detail</button>
+                        </div>
+                        
+                        <button type="button" onclick="mulaiUjian()" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-extrabold text-[10px] tracking-wider px-4 py-2.5 rounded-xl shadow-lg transition-warm uppercase cursor-pointer shrink-0 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Mulai Ujian (3 Mnt)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bagian Input Form (Bisa disembunyikan saat output tayang) -->
+                <div id="input-container" class="space-y-3 sm:space-y-4">
+                    <div class="space-y-1.5 animate-fade-in">
+                        <div class="flex items-center justify-between gap-2 px-1 pb-1">
+                            <label class="text-[9px] xs:text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest truncate max-w-[40%]">
+                                Tempel Materi &amp; Media:
+                            </label>
+                            <div class="flex items-center gap-1.5 xs:gap-2 flex-shrink-0">
+                                <!-- Tombol Unggah File (Hingga 50MB) -->
+                                <label class="cursor-pointer bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/20 active:scale-95 text-slate-300 hover:text-amber-300 text-[9px] xs:text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg transition-warm flex items-center gap-1" title="Unggah file hingga 50MB: PDF, Word (.docx), PPT (.pptx), Catatan (.txt), Audio (.mp3, .wav, .m4a), atau Gambar (.jpg, .png)">
+                                    <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i>
+                                    <span>Unggah (50MB)</span>
+                                    <input type="file" id="file-uploader" accept=".txt,.md,.png,.jpg,.jpeg,.gif,.webp,.pdf,.docx,.doc,.pptx,.ppt,.mp3,.wav,.ogg,.m4a,.webm,.aac,.TXT,.MD,.PNG,.JPG,.JPEG,.GIF,.WEBP,.PDF,.DOCX,.DOC,.PPTX,.PPT,.MP3,.WAV,.OGG,.M4A,.WEBM,.AAC" class="hidden">
+                                </label>
+
+                                <!-- Tombol Rekam Voice Note (VN) -->
+                                <button type="button" id="btn-vn-record" onclick="window.toggleVoiceNoteRecording()" class="bg-white/5 hover:bg-rose-500/15 border border-white/5 hover:border-rose-500/25 active:scale-95 text-slate-300 hover:text-rose-400 text-[9px] xs:text-[10px] sm:text-xs font-bold px-2 py-1 rounded-lg transition-warm flex items-center gap-1.5 cursor-pointer" title="Rekam Voice Note (VN) langsung lewat mikrofon">
+                                    <span class="relative flex h-2 w-2">
+                                        <span id="vn-ping" class="hidden animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span id="vn-dot" class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                    </span>
+                                    <i class="fa-solid fa-microphone text-rose-400 text-[10px] sm:text-xs"></i>
+                                    <span id="vn-btn-text">Rekam VN</span>
+                                </button>
+
+                                <span id="char-counter" class="text-[8.5px] xs:text-[9.5px] sm:text-xs text-slate-600 font-semibold whitespace-nowrap">0 Karakter</span>
+                            </div>
+                        </div>
+
+                        <!-- Live Voice Note (VN) Recording Panel (Perekaman Aktif) -->
+                        <div id="vn-recording-panel" class="hidden bg-slate-950/90 border border-rose-500/30 rounded-2xl p-3 sm:p-4 select-none animate-fade-in mb-2 mt-1 shadow-xl shadow-rose-950/20">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                                        <i class="fa-solid fa-microphone-lines text-lg animate-pulse"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                                            <span class="font-extrabold text-xs sm:text-sm text-rose-400 tracking-wide">Merekam Pesan Suara (VN)...</span>
+                                            <span id="vn-timer" class="font-mono font-bold text-xs bg-slate-900 border border-rose-500/30 px-2 py-0.5 rounded-md text-amber-300">00:00</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-0.5 truncate">Bicarakan materi atau pertanyaanmu, kami akan dengarkan &amp; transkripsikan otomatis!</p>
+                                    </div>
+                                </div>
+
+                                <!-- Soundwave Visualizer Bars -->
+                                <div class="flex items-center gap-1 h-6 px-2 py-1 bg-black/40 rounded-lg border border-white/5">
+                                    <div class="w-1 bg-rose-500 rounded-full animate-vn-wave-1 h-3"></div>
+                                    <div class="w-1 bg-amber-400 rounded-full animate-vn-wave-2 h-5"></div>
+                                    <div class="w-1 bg-indigo-400 rounded-full animate-vn-wave-3 h-2"></div>
+                                    <div class="w-1 bg-rose-400 rounded-full animate-vn-wave-4 h-6"></div>
+                                    <div class="w-1 bg-amber-400 rounded-full animate-vn-wave-2 h-4"></div>
+                                    <div class="w-1 bg-indigo-400 rounded-full animate-vn-wave-1 h-2"></div>
+                                    <div class="w-1 bg-rose-500 rounded-full animate-vn-wave-3 h-5"></div>
+                                </div>
+
+                                <!-- Recording Actions -->
+                                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                    <button type="button" onclick="window.stopVoiceNoteRecording(true)" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl transition-warm flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 cursor-pointer active:scale-95" title="Selesai & Simpan Rekaman">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Selesai</span>
+                                    </button>
+                                    <button type="button" onclick="window.cancelVoiceNoteRecording()" class="bg-white/5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 text-xs px-3 py-2 rounded-xl border border-white/5 transition-warm flex items-center gap-1 cursor-pointer active:scale-95" title="Batalkan Rekaman">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        <span>Batal</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Voice Note (VN) Saved Player Card -->
+                        <div id="vn-preview-container" class="hidden bg-slate-950/85 border border-amber-500/30 rounded-2xl p-3 sm:p-3.5 select-none animate-fade-in mb-2 mt-1 shadow-lg shadow-amber-950/10">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                <div class="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                                    <!-- Play/Pause Circle Button -->
+                                    <button type="button" id="vn-play-btn" onclick="window.togglePlayVoiceNote()" class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 flex items-center justify-center text-sm shadow-md transition-warm cursor-pointer active:scale-95 shrink-0" title="Putar Rekaman Suara">
+                                        <i id="vn-play-icon" class="fa-solid fa-play ml-0.5"></i>
+                                    </button>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-extrabold text-xs sm:text-sm text-slate-100 flex items-center gap-1.5 truncate">
+                                                <i class="fa-solid fa-microphone text-rose-400 text-xs"></i>
+                                                <span id="vn-player-title">Voice Note (VN) Siap Dibedah</span>
+                                            </span>
+                                            <span id="vn-duration-badge" class="font-mono text-[10px] bg-white/5 border border-white/10 px-2 py-0.5 rounded text-amber-300 shrink-0">0:00</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <!-- Interactive Progress Scrubber -->
+                                            <div class="relative w-full max-w-[200px] h-1.5 bg-white/10 rounded-full overflow-hidden cursor-pointer" onclick="window.seekVoiceNote(event)">
+                                                <div id="vn-progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-400 to-orange-500 w-0 transition-all duration-100"></div>
+                                            </div>
+                                            <span id="vn-size-badge" class="text-[9px] text-slate-400 shrink-0">120 KB</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- VN Action buttons: Transcribe text indicator & Delete button -->
+                                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                                    <div id="vn-transcribe-status" class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center gap-1 truncate max-w-[160px] sm:max-w-[220px]">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i>
+                                        <span id="vn-transcribe-text" class="truncate">Transkripsi otomatis siap</span>
+                                    </div>
+                                    <button type="button" onclick="window.hapusVoiceNote()" class="text-slate-400 hover:text-rose-400 p-2 rounded-xl bg-white/5 border border-white/5 hover:border-rose-500/20 transition-warm cursor-pointer active:scale-90" title="Hapus Voice Note">
+                                        <i class="fa-solid fa-trash-can text-xs sm:text-sm"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload Preview Box (Hingga 50MB: PDF, Docs, PPT, Gambar, Audio) -->
+                        <div id="file-preview-container" class="hidden bg-slate-950/80 border border-amber-500/20 rounded-xl p-2 md:p-2.5 flex items-center justify-between gap-3 text-xs text-slate-200 select-none animate-fade-in mb-2 mt-1">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div id="file-preview-icon" class="text-amber-400 text-lg flex-shrink-0 w-8 h-8 flex items-center justify-center bg-white/5 rounded-lg border border-white/10">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span id="file-preview-name" class="font-bold block truncate text-[11px] sm:text-xs">NamaFile.jpg</span>
+                                    <span id="file-preview-size" class="text-[8px] xs:text-[9px] sm:text-[10px] text-slate-500 block leading-tight">12.4 KB (Maks 50MB)</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button type="button" onclick="window.hapusFileUnggahan()" class="text-slate-500 hover:text-rose-400 active:scale-90 transition-warm p-1.5 cursor-pointer" title="Hapus File">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="relative group">
+                            <textarea id="text-input" required 
+                                placeholder="Contoh: Salin paragraf buku paket tentang metamorfosis amfibi, cara kerja mesin bubut, atau teori ekonomi yang membingungkan..."
+                                class="w-full bg-slate-950/60 border border-white/5 rounded-2xl px-3.5 py-3 sm:px-5 sm:py-4 pb-10 sm:pb-12 h-24 xs:h-28 sm:h-36 text-xs sm:text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-warm resize-none shadow-inner"></textarea>
+                            <!-- Floating interactive actions inside input block -->
+                            <div class="absolute right-3.5 bottom-3 sm:right-4 sm:bottom-4 flex items-center gap-2">
+                                <button type="button" id="btn-clear-text" onclick="window.bersihkanInputMateri()" class="hidden opacity-0 text-[10px] sm:text-xs font-bold leading-none bg-white/5 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-white/10 rounded-lg px-2 py-1 cursor-pointer transition-warm items-center gap-1" title="Bersihkan Teks">
+                                    <i class="fa-solid fa-eraser"></i> <span>Hapus</span>
+                                </button>
+                                <div class="text-slate-700 group-focus-within:text-indigo-500/40 transition-warm">
+                                    <i class="fa-solid fa-pen-nib text-xs sm:text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Quick example materials below the text area -->
+                        <div class="space-y-1 pt-1">
+                            <span class="text-[8.5px] xs:text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block px-1">Atau Coba Klik Contoh Materi Ini:</span>
+                            <div id="examples-container" class="flex flex-row gap-2 overflow-x-auto pb-1 no-scrollbar select-none scroll-smooth">
+                                <!-- Will be dynamically generated via Javascript based on selected Education level! -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-1">
+                        <button type="submit" id="btn-submit" class="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-amber-600 hover:from-indigo-500 hover:to-amber-500 text-white font-extrabold py-2.5 xs:py-3 sm:py-4 px-4 sm:px-6 rounded-2xl text-[10px] xs:text-[11px] sm:text-sm tracking-wider sm:tracking-widest uppercase transition-warm shadow-xl shadow-indigo-950/50 hover:shadow-amber-950/20 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2">
+                            <span>Bedah Materi Sekarang</span> 
+                            <i class="fa-solid fa-wand-magic-sparkles text-xs sm:text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Legal Footer and Copyright Credit -->
+    <footer class="w-full max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto mt-6 mb-8 text-center text-slate-600 text-[10px] sm:text-xs select-none px-4">
+        <p class="opacity-75">&copy; 2026 Gotcha.ai · Semua Hak Cipta Dilindungi Undang-Undang. Layanan dekonstruksi materi pintar otomatis.</p>
+    </footer>
+
+    <div id="examModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div class="premium-glass border border-white/10 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-fade-in">
+            <div class="bg-gradient-to-r from-indigo-950 to-slate-900 p-5 text-white flex justify-between items-center border-b border-white/5">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="window.tutupUjian()" class="text-slate-400 hover:text-white transition-warm text-sm p-1.5 hover:bg-white/5 rounded-lg" title="Batal & Kembali ke Pencarian">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h3 class="font-bold text-sm tracking-wide text-amber-400 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-graduation-cap"></i> Ujian Sederhana Gotcha
+                        </h3>
+                        <p class="text-[10px] text-slate-400">Uji seberapa meresap materi ke otakmu</p>
+                    </div>
+                </div>
+                <div id="examTimerContainer" class="bg-slate-950 px-3 py-1.5 rounded-xl border border-amber-500/40 text-amber-400 font-mono text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-regular fa-clock animate-pulse"></i> <span id="examTimerDisplay">3:00</span>
+                </div>
+            </div>
+            
+            <div id="quizQuestionsContainer" class="p-5 overflow-y-auto flex-1 text-slate-200 space-y-4">
+            </div>
+
+            <!-- Footer pas kuis sedang aktif -->
+            <div id="quizFooterActive" class="p-4 bg-slate-950/80 border-t border-white/5 flex justify-between items-center gap-3">
+                <button type="button" onclick="window.tutupUjian()" class="bg-white/5 hover:bg-white/10 text-slate-300 font-extrabold text-[10px] sm:text-xs tracking-wider px-3.5 py-2 rounded-xl transition-warm cursor-pointer uppercase flex items-center gap-1">
+                    <i class="fa-solid fa-xmark"></i> Batal
+                </button>
+                <button type="button" onclick="selesaiUjian()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-[10px] sm:text-xs tracking-wider px-4 py-2 rounded-xl shadow-md transition-warm cursor-pointer uppercase flex items-center gap-1.5">
+                    Selesai &amp; Cek Skor <i class="fa-solid fa-circle-check"></i>
+                </button>
+            </div>
+
+            <!-- Footer pas hasil kuis selesai tayang -->
+            <div id="quizFooterResult" class="hidden p-4 bg-slate-950/80 border-t border-white/5 flex justify-between items-center gap-3">
+                <button type="button" onclick="window.mulaiUjian()" class="bg-white/5 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/20 text-amber-400 font-extrabold text-[10px] sm:text-xs tracking-wider px-3.5 py-2 rounded-xl transition-warm cursor-pointer uppercase flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i> Kuis Lagi
+                </button>
+                <button type="button" onclick="window.tutupUjian()" class="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold text-[10px] sm:text-xs tracking-wider px-4 py-2 rounded-xl shadow-md transition-warm cursor-pointer uppercase flex items-center gap-1.5">
+                    Kembali Ke Pencarian <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Gotcha-AI-Python",
+  "description": "Gotcha.ai - Multi-Level AI Mind Explainer & Educational Transmuter dengan Framework Python Flask dan Google Gemini API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
