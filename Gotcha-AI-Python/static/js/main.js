@@ -9,10 +9,13 @@ let examSeconds = 180;
 let examQuestions = [];
 let userAnswers = [];
 
-// State Management Global untuk Fitur Unggah File (Hingga 50MB)
+// State Management Global untuk Fitur Unggah File & Media (Hingga 15MB)
 let uploadedFileBase64 = null;
 let uploadedFileMimeType = null;
 let uploadedFileName = null;
+let uploadedFileType = null; // 'image', 'document', 'audio', 'text'
+let uploadedDocumentText = null;
+let uploadedImagePreviewUrl = null;
 
 // State Management Global untuk Fitur Voice Note (VN) & Audio
 let mediaRecorder = null;
@@ -798,7 +801,19 @@ function setupEventListeners() {
         if (isImage) {
             reader.onload = function(evt) {
                 uploadedFileBase64 = evt.target.result.split(',')[1];
-                uploadedFileMimeType = fileType || 'image/png';
+                let mime = fileType;
+                if (!mime || mime === 'application/octet-stream') {
+                    if (fileNameLower.endsWith('.png')) mime = 'image/png';
+                    else if (fileNameLower.endsWith('.jpg') || fileNameLower.endsWith('.jpeg')) mime = 'image/jpeg';
+                    else if (fileNameLower.endsWith('.webp')) mime = 'image/webp';
+                    else if (fileNameLower.endsWith('.gif')) mime = 'image/gif';
+                    else mime = 'image/jpeg';
+                }
+                uploadedFileMimeType = mime;
+                uploadedFileName = fileName;
+                uploadedFileType = 'image';
+                uploadedImagePreviewUrl = evt.target.result;
+                uploadedDocumentText = null;
 
                 const previewContainer = document.getElementById('file-preview-container');
                 const previewName = document.getElementById('file-preview-name');
@@ -807,31 +822,30 @@ function setupEventListeners() {
 
                 if (previewContainer && previewName && previewSize) {
                     previewName.innerText = fileName;
-                    previewSize.innerText = `${formatSize(file.size)} (Gambar Siap Dipindai)`;
+                    previewSize.innerText = `${formatSize(file.size)} (Foto Terlampir - Siap Dikirim Bersama Chat)`;
                     if (previewIcon) {
-                        previewIcon.innerHTML = `<img src="${evt.target.result}" referrerPolicy="no-referrer" class="w-8 h-8 rounded object-cover border border-white/10">`;
+                        previewIcon.innerHTML = `<img src="${evt.target.result}" referrerPolicy="no-referrer" class="w-8 h-8 rounded-lg object-cover border border-amber-500/40 shadow">`;
                     }
                     previewContainer.classList.remove('hidden');
                 }
                 
                 const textInput = document.getElementById('text-input');
-                if (textInput && textInput.value.trim() === '') {
-                    textInput.value = "Tolong analisis gambar materi pelajaran ini dan jelaskan secara singkat & asyik!";
-                    textInput.dispatchEvent(new Event('input'));
+                if (textInput) {
+                    textInput.placeholder = `Foto "${fileName}" terlampir! Ketik pertanyaan/soalmu atau klik 'Bedah Materi Sekarang'...`;
                 }
 
-                showToast(`Gambar ${fileName} berhasil diunggah!`, "success");
+                showToast(`Foto ${fileName} berhasil dilampirkan!`, "success");
             };
             reader.readAsDataURL(file);
         }
         else if (isText) {
             reader.onload = function(evt) {
                 const textContent = evt.target.result;
-                const textInput = document.getElementById('text-input');
-                if (textInput) {
-                    textInput.value = textContent;
-                    textInput.dispatchEvent(new Event('input'));
-                }
+                uploadedDocumentText = textContent;
+                uploadedFileName = fileName;
+                uploadedFileType = 'document';
+                uploadedFileBase64 = null;
+                uploadedFileMimeType = 'text/plain';
 
                 const previewContainer = document.getElementById('file-preview-container');
                 const previewName = document.getElementById('file-preview-name');
@@ -840,17 +854,19 @@ function setupEventListeners() {
 
                 if (previewContainer && previewName && previewSize) {
                     previewName.innerText = fileName;
-                    previewSize.innerText = `${formatSize(file.size)} (Teks Terbaca)`;
+                    previewSize.innerText = `${formatSize(file.size)} (Dokumen Teks Siap Dibedah)`;
                     if (previewIcon) {
-                        previewIcon.innerHTML = `<i class="fa-solid fa-file-invoice text-amber-400 text-lg"></i>`;
+                        previewIcon.innerHTML = `<i class="fa-solid fa-file-lines text-amber-400 text-lg"></i>`;
                     }
                     previewContainer.classList.remove('hidden');
                 }
 
-                uploadedFileBase64 = null;
-                uploadedFileMimeType = null;
+                const textInput = document.getElementById('text-input');
+                if (textInput) {
+                    textInput.placeholder = `Berkas "${fileName}" terlampir! Tulis pertanyaanmu atau langsung klik 'Bedah Materi'...`;
+                }
 
-                showToast(`File teks ${fileName} berhasil dibaca!`, "success");
+                showToast(`File teks ${fileName} berhasil dilampirkan!`, "success");
             };
             reader.readAsText(file);
         }
@@ -868,14 +884,15 @@ function setupEventListeners() {
                 }
                 uploadedAudioBase64 = base64Content;
                 uploadedAudioMimeType = mime;
+                uploadedFileName = fileName;
+                uploadedFileType = 'audio';
 
                 setupVoiceNoteFromBlobOrBase64(evt.target.result, file.size, fileName, mime);
                 fetchServerAudioTranscription(base64Content, mime);
 
                 const textInput = document.getElementById('text-input');
-                if (textInput && textInput.value.trim() === '') {
-                    textInput.value = `Tolong bedah dan jelaskan materi pelajaran dari rekaman suara ${fileName} ini!`;
-                    textInput.dispatchEvent(new Event('input'));
+                if (textInput) {
+                    textInput.placeholder = `Audio "${fileName}" terlampir! Ketik pertanyaanmu atau langsung klik 'Bedah Materi'...`;
                 }
 
                 showToast(`File audio ${fileName} (hingga 15MB) berhasil dimuat!`, "success");
@@ -892,7 +909,7 @@ function setupEventListeners() {
 
             if (previewContainer && previewName && previewSize) {
                 previewName.innerText = fileName;
-                previewSize.innerText = "Sedang diproses oleh AI...";
+                previewSize.innerText = "Sedang mengekstrak isi dokumen...";
                 if (previewIcon) {
                     previewIcon.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-amber-400 text-lg"></i>`;
                 }
@@ -928,14 +945,21 @@ function setupEventListeners() {
                     const parseResult = await parseRes.json();
                     const extractedText = parseResult.text;
 
+                    uploadedDocumentText = extractedText;
+                    uploadedDocumentName = fileName;
+                    uploadedDocumentMime = processedMime;
+                    uploadedFileBase64 = base64Content;
+                    uploadedFileMimeType = processedMime;
+                    uploadedFileName = fileName;
+                    uploadedFileType = 'document';
+
                     const textInput = document.getElementById('text-input');
                     if (textInput) {
-                        textInput.value = extractedText;
-                        textInput.dispatchEvent(new Event('input'));
+                        textInput.placeholder = `Berkas "${fileName}" terlampir (${extractedText.length} karakter)! Ketik pertanyaanmu atau langsung klik 'Bedah Materi'...`;
                     }
 
                     if (previewContainer && previewSize && previewIcon) {
-                        previewSize.innerText = `${formatSize(file.size)} (Teks Berhasil Diekstrak)`;
+                        previewSize.innerText = `${formatSize(file.size)} (Berkas Terlampir - Teks Siap Dianalisis)`;
                         
                         let iconHtml = '<i class="fa-solid fa-file-invoice text-amber-400 text-lg"></i>';
                         if (fileNameLower.endsWith('.pdf')) {
@@ -948,10 +972,7 @@ function setupEventListeners() {
                         previewIcon.innerHTML = iconHtml;
                     }
 
-                    uploadedFileBase64 = null;
-                    uploadedFileMimeType = null;
-
-                    showToast(`Dokumen ${fileName} berhasil diekstrak!`, "success");
+                    showToast(`Dokumen ${fileName} berhasil dilampirkan & disinkronkan!`, "success");
                 } catch (err) {
                     console.error(err);
                     showToast(`Gagal memuat dokumen: ${err.message}`, "error");
@@ -1018,6 +1039,9 @@ function setupEventListeners() {
         uploadedFileBase64 = null;
         uploadedFileMimeType = null;
         uploadedFileName = null;
+        uploadedFileType = null;
+        uploadedDocumentText = null;
+        uploadedImagePreviewUrl = null;
         const previewContainer = document.getElementById('file-preview-container');
         if (previewContainer) {
             previewContainer.classList.add('hidden');
@@ -1026,7 +1050,11 @@ function setupEventListeners() {
         if (uploaderInput) {
             uploaderInput.value = '';
         }
-        showToast("File unggahan berhasil dihapus.", "info");
+        const textInput = document.getElementById('text-input');
+        if (textInput) {
+            textInput.placeholder = "Contoh: Salin paragraf buku paket tentang metamorfosis amfibi, cara kerja mesin bubut, atau teori ekonomi yang membingungkan...";
+        }
+        showToast("Lampiran berkas berhasil dihapus.", "info");
     };
 
     // Populate initial examples on load matching selected level
@@ -1369,7 +1397,7 @@ async function fetchGeminiWithRetry(systemPrompt, userQuery, image = null, audio
     return null;
 }
 
-// Alur Fungsi Utama saat Tombol "Terjemahkan Materi Sekarang" Di-submit
+// Alur Fungsi Utama saat Tombol "Bedah Materi Sekarang" Di-submit
 async function dekonstruksiMateri() {
     const textInput = document.getElementById('text-input');
     const btnSubmit = document.getElementById('btn-submit');
@@ -1378,7 +1406,7 @@ async function dekonstruksiMateri() {
     const displayResult = document.getElementById('display-result');
     const resultMetaLevel = document.getElementById('result-meta-level');
 
-    const promptText = textInput.value.trim();
+    const userTypedText = (textInput ? textInput.value : '').trim();
     const selectedLevel = document.querySelector('input[name="education-level"]:checked')?.value;
 
     if (!selectedLevel) {
@@ -1386,42 +1414,128 @@ async function dekonstruksiMateri() {
         return;
     }
 
-    // Persiapkan imageObj & audioObj terlebih dahulu sebelum variabel global dibersihkan
-    let imageObj = null;
-    if (uploadedFileBase64 && uploadedFileMimeType) {
-        imageObj = {
-            mimeType: uploadedFileMimeType,
-            data: uploadedFileBase64
-        };
-    }
+    const hasImage = Boolean(uploadedFileBase64 && (uploadedFileType === 'image' || (!uploadedFileType && uploadedFileMimeType && uploadedFileMimeType.startsWith('image/'))));
+    const hasDoc = Boolean(uploadedDocumentText || (uploadedFileBase64 && uploadedFileType === 'document'));
+    const hasAudio = Boolean(uploadedAudioBase64);
+    const hasText = Boolean(userTypedText);
 
-    let audioObj = null;
-    if (uploadedAudioBase64 && uploadedAudioMimeType) {
-        audioObj = {
-            mimeType: uploadedAudioMimeType,
-            data: uploadedAudioBase64
-        };
-    }
-
-    if (!promptText && !imageObj && !audioObj) {
-        showToast("Tulis materi, rekam Voice Note (VN), atau unggah file dulu ya!", "error");
+    if (!hasText && !hasImage && !hasDoc && !hasAudio) {
+        showToast("Tulis materi/pertanyaan, lampirkan foto/dokumen, atau rekam Voice Note dulu ya!", "error");
         return;
     }
 
-    const effectiveText = promptText || (audioObj ? "Tolong dengarkan rekaman suara (Voice Note) materi pelajaran ini dan jelaskan secara asyik serta mudah dipahami!" : "Tolong analisis materi pelajaran dari file ini secara asyik!");
+    // Persiapkan imageObj & audioObj dan salin data sebelum state dibersihkan
+    let imageObj = null;
+    let audioObj = null;
+    let attachedBadgeHtml = "";
+    let finalUserQuery = "";
 
-    currentMateri = effectiveText;
-    // Reset index navigasi karena ada pencarian baru
+    // 1. Lampiran FOTO / GAMBAR (.jpg, .jpeg, .png, .webp, .gif)
+    if (hasImage) {
+        imageObj = {
+            mimeType: uploadedFileMimeType || 'image/jpeg',
+            data: uploadedFileBase64
+        };
+        const fileNameDisp = uploadedFileName || 'Foto Materi';
+        const imgPreview = uploadedImagePreviewUrl || `data:${imageObj.mimeType};base64,${imageObj.data}`;
+
+        attachedBadgeHtml = `
+            <div class="mb-4 p-3 sm:p-3.5 bg-white/[0.03] border border-amber-500/30 rounded-2xl flex items-center gap-3 shadow-md animate-fade-in">
+                <img src="${imgPreview}" referrerPolicy="no-referrer" class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover border border-amber-500/40 shadow shrink-0">
+                <div class="min-w-0 flex-1">
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera"></i> Foto / Gambar Terlampir
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-white block truncate mt-0.5">${fileNameDisp}</span>
+                    <p class="text-[11px] text-slate-300 italic truncate mt-0.5">${userTypedText ? '"' + userTypedText + '"' : 'Menganalisis isi foto materi'}</p>
+                </div>
+            </div>
+        `;
+
+        if (userTypedText) {
+            finalUserQuery = `[Pertanyaan / Perintah Pengguna Mengenai Foto Terlampir]:\n${userTypedText}\n\nTolong amati dan periksa foto materi yang saya lampirkan dengan seksama. Bedah konsep, teks, rumus, atau soal yang ada di foto tersebut, lalu jelaskan dan berikan jawaban secara tuntas!`;
+        } else {
+            finalUserQuery = "Tolong periksa dan analisis foto materi pelajaran terlampir dengan sangat teliti. Jelaskan konsep, teks, rumus, diagram, atau soal yang ada di dalamnya secara menyeluruh dan mudah dipahami!";
+        }
+    }
+    // 2. Lampiran BERKAS DOKUMEN (PDF, Word .docx, PPT .pptx, Teks .txt)
+    else if (hasDoc) {
+        const docNameDisp = uploadedDocumentName || uploadedFileName || 'Dokumen Pelajaran';
+        const docText = uploadedDocumentText || "";
+
+        attachedBadgeHtml = `
+            <div class="mb-4 p-3 sm:p-3.5 bg-white/[0.03] border border-indigo-500/30 rounded-2xl flex items-center gap-3 shadow-md animate-fade-in">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-paperclip"></i> Dokumen / Berkas Terlampir
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-white block truncate mt-0.5">${docNameDisp}</span>
+                    <p class="text-[11px] text-slate-300 italic truncate mt-0.5">${userTypedText ? '"' + userTypedText + '"' : 'Menganalisis intisari seluruh isi berkas'}</p>
+                </div>
+            </div>
+        `;
+
+        if (userTypedText) {
+            finalUserQuery = `[Pertanyaan / Perintah Pengguna Mengenai Berkas "${docNameDisp}"]:\n${userTypedText}\n\n[Isi Teks Berkas Dokumen]:\n${docText}`;
+        } else {
+            finalUserQuery = `Tolong bedah dan jelaskan materi utama dari berkas dokumen "${docNameDisp}" berikut ini secara terstruktur, jelas, dan asyik:\n\n${docText}`;
+        }
+    }
+    // 3. Lampiran REKAMAN SUARA / VOICE NOTE (VN)
+    else if (hasAudio) {
+        audioObj = {
+            mimeType: uploadedAudioMimeType || 'audio/webm',
+            data: uploadedAudioBase64
+        };
+        const audioNameDisp = uploadedFileName || 'Voice Note Suara';
+
+        attachedBadgeHtml = `
+            <div class="mb-4 p-3 sm:p-3.5 bg-white/[0.03] border border-rose-500/30 rounded-2xl flex items-center gap-3 shadow-md animate-fade-in">
+                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-waveform-lines"></i> Rekaman Voice Note (VN)
+                    </span>
+                    <span class="text-xs sm:text-sm font-bold text-white block truncate mt-0.5">${audioNameDisp}</span>
+                    <p class="text-[11px] text-slate-300 italic truncate mt-0.5">${userTypedText ? '"' + userTypedText + '"' : (transcribedVNText ? `"${transcribedVNText}"` : 'Mendengarkan rekaman suara')}</p>
+                </div>
+            </div>
+        `;
+
+        if (userTypedText) {
+            finalUserQuery = `[Catatan / Pertanyaan Pengguna]:\n${userTypedText}\n\nTolong dengarkan rekaman audio yang saya sertakan dengan seksama dan bedah materinya sesuai catatan pertanyaan di atas!`;
+        } else {
+            finalUserQuery = "Tolong dengarkan pesan suara (Voice Note) ini dengan seksama dan bedah materi yang disampaikan secara komprehensif!";
+        }
+    }
+    // 4. Input Teks Murni
+    else {
+        finalUserQuery = userTypedText;
+    }
+
+    currentMateri = finalUserQuery;
     currentHistoryIndex = -1;
-    saveToHistory(effectiveText);
+    saveToHistory(userTypedText || (uploadedFileName ? `Berkas: ${uploadedFileName}` : finalUserQuery));
 
-    // Sekarang aman untuk menghapus bekas input teks dan file di kolom input secara halus
-    textInput.value = '';
-    textInput.dispatchEvent(new Event('input'));
+    // Reset input teks dan file setelah data tersimpan
+    if (textInput) {
+        textInput.value = '';
+        textInput.placeholder = "Contoh: Salin paragraf buku paket tentang metamorfosis amfibi, cara kerja mesin bubut, atau teori ekonomi yang membingungkan...";
+        textInput.dispatchEvent(new Event('input'));
+    }
 
     uploadedFileBase64 = null;
     uploadedFileMimeType = null;
     uploadedFileName = null;
+    uploadedFileType = null;
+    uploadedDocumentText = null;
+    uploadedImagePreviewUrl = null;
+
     const previewContainer = document.getElementById('file-preview-container');
     if (previewContainer) {
         previewContainer.classList.add('hidden');
@@ -1451,49 +1565,56 @@ async function dekonstruksiMateri() {
     resultMetaLevel.innerText = `Level Penjelasan: ${levelNames[selectedLevel]}`;
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    let systemPrompt = "";
+    let systemPrompt = `Kamu adalah Gotcha.ai, asisten edukasi pintar yang mampu mendekonstruksi materi apapun menjadi penjelasan yang sangat asyik, runtut, dan mudah dipahami.
+Tingkat pemahaman target: ${levelNames[selectedLevel]}.
+`;
+
     if (selectedLevel === "sd") {
-        systemPrompt = "Ubah materi berikut menjadi penjelasan yang SANGAT MUDAH untuk anak SD umur 7-10 tahun. Gunakan analogi cerita seru atau benda konkrit di sekitar kita. Gunakan bahasa yang ramah, asyik, ceria, dan hindari istilah ilmiah yang rumit.";
+        systemPrompt += "Gunakan gaya bahasa anak SD (umur 7-10 tahun): gunakan analogi cerita seru, kartun, atau benda nyata di sekitar kita. Gunakan bahasa yang ramah, asyik, ceria, dan hindari istilah ilmiah yang rumit.";
     } else if (selectedLevel === "smp") {
-        systemPrompt = "Ubah materi berikut menjadi penjelasan yang jelas dan mudah dipahami anak SMP. Fokus pada poin-poin esensial, definisi dasar yang kuat, serta contoh nyata yang relevan dengan pelajaran sekolah mereka.";
+        systemPrompt += "Gunakan gaya bahasa anak SMP: bahasa yang jelas, mudah dipahami, fokus pada poin-poin esensial, definisi dasar yang kuat, serta contoh nyata yang relevan.";
     } else if (selectedLevel === "sma-smk") {
-        systemPrompt = "Ubah materi berikut menjadi ringkasan taktik belajar (Cheat Sheet) yang praktis buat anak SMA/SMK. Berikan rumus kilat jika ada, langkah-langkah kerja yang aplikatif, dan logika dasarnya agar gampang lulus ujian.";
+        systemPrompt += "Gunakan gaya bahasa anak SMA/SMK (Cheat Sheet): ringkasan taktik belajar yang praktis, rumus kilat jika ada, langkah-langkah kerja aplikatif, dan logika dasarnya agar cepat paham dan siap ujian.";
     } else if (selectedLevel === "mahasiswa") {
-        systemPrompt = "Ubah materi berikut menjadi Analisis Kritis berbobot untuk tingkat Mahasiswa Kuliah. Bedah metodologinya, korelasi teoritisnya, dan sajikan 3 poin pertanyaan tajam yang bisa dipakai sebagai bahan diskusi kritis di kelas.";
+        systemPrompt += "Gunakan gaya bahasa tingkat Mahasiswa: analisis kritis, bedah metodologinya, korelasi teoritisnya, dan sajikan poin pertanyaan tajam yang mendalam.";
     }
 
-    systemPrompt += " Di baris paling awal jawabanmu, WAJIB tampilkan 3 baris list materi dasar bertuliskan judul 'Prasyarat Belajar / Roadmap Singkat' sebelum menjelaskan materi intinya.";
+    systemPrompt += `
+
+PANDUAN KHUSUS BERKAS / FOTO:
+1. Jika pengguna melampirkan FOTO atau BERKAS, amati dan periksa SELURUH isi konten (gambar, teks, rumus, grafik, soal) secara teliti.
+2. Jawab pertanyaan pengguna terkait foto/berkas tersebut secara tuntas.
+3. Di baris paling awal jawabanmu, WAJIB tampilkan 3 baris list materi dasar bertuliskan judul 'Prasyarat Belajar / Roadmap Singkat' sebelum menjelaskan materi intinya.`;
 
     try {
-        // Sembunyikan HANYA opsi jenjang sesuai request ("opsi semua itu hilang")
         const eduSection = document.getElementById('education-level-section');
         if (eduSection) {
             eduSection.classList.add('hidden');
             eduSection.style.display = 'none';
         }
 
-        const aiResult = await fetchGeminiWithRetry(systemPrompt, effectiveText, imageObj, audioObj);
+        const aiResult = await fetchGeminiWithRetry(systemPrompt, finalUserQuery, imageObj, audioObj);
         loadingSkeleton.classList.add('hidden');
 
         if (aiResult) {
-            displayResult.innerHTML = parseSimpleMarkdown(aiResult);
+            displayResult.innerHTML = attachedBadgeHtml + parseSimpleMarkdown(aiResult);
             showToast("Materi sukses didekonstruksi!", "success");
             
             document.getElementById('quickRefineContainer').classList.remove('hidden');
             document.getElementById('roadmapOptionBox').classList.remove('hidden');
         } else {
             // Jalankan local smart deconstructor secara instan & mulus
-            const localResult = generateLocalMateriDeconstruction(effectiveText, selectedLevel);
-            displayResult.innerHTML = parseSimpleMarkdown(localResult);
+            const localResult = generateLocalMateriDeconstruction(finalUserQuery, selectedLevel);
+            displayResult.innerHTML = attachedBadgeHtml + parseSimpleMarkdown(localResult);
             showToast("Materi sukses dirangkum!", "success");
             
             document.getElementById('quickRefineContainer').classList.remove('hidden');
             document.getElementById('roadmapOptionBox').classList.remove('hidden');
         }
     } catch (error) {
-        const localResult = generateLocalMateriDeconstruction(effectiveText, selectedLevel);
+        const localResult = generateLocalMateriDeconstruction(finalUserQuery, selectedLevel);
         loadingSkeleton.classList.add('hidden');
-        displayResult.innerHTML = parseSimpleMarkdown(localResult);
+        displayResult.innerHTML = attachedBadgeHtml + parseSimpleMarkdown(localResult);
         showToast("Materi sukses dirangkum!", "success");
         
         document.getElementById('quickRefineContainer').classList.remove('hidden');
@@ -1506,7 +1627,7 @@ async function dekonstruksiMateri() {
         }
     } finally {
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = `<span>Terjemahkan Materi Sekarang</span> <i class="fa-solid fa-wand-magic-sparkles text-xs sm:text-sm"></i>`;
+        btnSubmit.innerHTML = `<span>Bedah Materi Sekarang</span> <i class="fa-solid fa-wand-magic-sparkles text-xs sm:text-sm"></i>`;
     }
 }
 

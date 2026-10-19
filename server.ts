@@ -97,10 +97,10 @@ async function startServer() {
       const text = aiResponse.text || "";
       return res.status(200).json({ text });
     } catch (error: any) {
-      console.log(`[INFO] Permintaan Gemini API dialihkan ke Mode Cepat lokal: ${error?.message || "Layanan API sibuk"}`);
+      console.error(`[GEMINI API ERROR]`, error?.message, error);
       return res.status(200).json({
         fallback: true,
-        message: error?.message || "Mode Cepat aktif."
+        message: error?.message || "Layanan Gemini API sedang sibuk. Mode Cepat diaktifkan."
       });
     }
   });

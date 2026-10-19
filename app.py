@@ -110,15 +110,15 @@ def gemini_proxy():
             parts = []
             if image and isinstance(image, dict) and image.get("data") and image.get("mimeType"):
                 parts.append({
-                    "inline_data": {
-                        "mime_type": image["mimeType"],
+                    "inlineData": {
+                        "mimeType": image["mimeType"],
                         "data": image["data"]
                     }
                 })
             if audio and isinstance(audio, dict) and audio.get("data") and audio.get("mimeType"):
                 parts.append({
-                    "inline_data": {
-                        "mime_type": audio["mimeType"],
+                    "inlineData": {
+                        "mimeType": audio["mimeType"],
                         "data": audio["data"]
                     }
                 })
@@ -129,8 +129,8 @@ def gemini_proxy():
 
             payload = {
                 "contents": [{"parts": parts}],
-                "system_instruction": {"parts": [{"text": system_prompt}]},
-                "generation_config": {"temperature": 0.7}
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "generationConfig": {"temperature": 0.7}
             }
 
             req = urllib.request.Request(
@@ -211,15 +211,15 @@ def transcribe_audio():
                 "contents": [{
                     "parts": [
                         {
-                            "inline_data": {
-                                "mime_type": mime_type,
+                            "inlineData": {
+                                "mimeType": mime_type,
                                 "data": audio_data
                             }
                         },
                         {"text": prompt_text}
                     ]
                 }],
-                "generation_config": {"temperature": 0.2}
+                "generationConfig": {"temperature": 0.2}
             }
 
             req = urllib.request.Request(
